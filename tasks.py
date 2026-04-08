@@ -10,8 +10,11 @@ def load_data():
     with open('data.json', 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    for key, value in data.items():
-        redis.set(key, json.dumps(value))
+    try:
+        for key, value in data.items():
+            redis.set(key, json.dumps(value))
+    except Exception as e:
+        return f"Ошибка при сохранении: {str(e)}"
 
     return f"Загружено {len(data)} ключей"
 
