@@ -3,7 +3,7 @@ services:
     image: rabbitmq:3.12-alpine
     container_name: redis-loader-rabbitmq
     ports:
-      - "5672:5672"
+      - "${RABBITMQ_PORT}:5672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 10s
@@ -14,7 +14,7 @@ services:
     image: redis:7.2-alpine
     container_name: redis-loader-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -24,11 +24,18 @@ services:
   celery_worker:
     build: .
     container_name: redis-loader-worker
-    command: celery -A celery_app worker --loglevel=info
+    command: celery -A celery_app worker --loglevel=${CELERY_LOG_LEVEL}
     depends_on:
       rabbitmq:
         condition: service_healthy
       redis:
         condition: service_healthy
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_DB=${REDIS_DB}
     volumes:
       - ./:/app
+
